@@ -1,0 +1,252 @@
+index.html
+
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
+
+
+index.js
+
+import React from 'react';
+import ReactDom from 'react-dom';
+import App from './components/App';
+
+ReactDom.render(<App />,document.querySelector('#root'));
+
+
+
+App.js
+
+
+import React ,{useState} from 'react';
+import Adduser from './Adduser';
+import Manageuser from './Manageuser';
+import Edituser from './Edituser';
+
+const App = () => {
+    const userData = [
+        {uid:1,firstname:"Harinee", lastname:"S"},
+        {uid:2,firstname:"Yogan", lastname:"S"},
+        {uid:3,firstname:"Shree", lastname:"S"}
+    ]
+
+    const [users,setUsers] = useState(userData);
+    
+    const addUser = user => {
+        user.uid = users.length + 1
+        setUsers([...users, user])
+      }
+
+    const deleteUser = uid => {
+        setUsers(users.filter(user => user.uid !== uid))
+      }
+
+    const [editing, setEditing] = useState(false)
+    
+    
+      const initialFormState = { uid: null, firstname: '', lastname: '' }
+
+      const [currentUser, setCurrentUser] = useState(initialFormState)
+
+      const editRow = user => {
+        setEditing(true)
+      
+        setCurrentUser({ uid: user.uid, firstname: user.firstname, lastname: user.lastname })
+      }
+      const updateUser = (uid, updatedUser) => {
+        setEditing(false)
+      
+        setUsers(users.map(user => (user.uid === uid ? updatedUser : user)))
+      }
+    return(
+
+        <div className="ui celled grid">
+                <div className="row">
+                    <div className="eighteen wide column">
+                       <h2>Manage User With Hooks</h2>
+                    </div>
+                    
+                </div>
+
+            
+                <div className="row">
+                    <div className="eighteen wide column">
+                        <div className="ui placeholder segment">
+                                <div className="ui two column very relaxed stackable grid">
+                                 { editing ? ( 
+                                 
+                                    <div className="column">
+                                    <Edituser  editing={editing} setEditing={setEditing} currentUser={currentUser} updateUser={updateUser} />
+                                    </div> 
+                                    
+                                    ) : (
+                                    <div className="column">
+                                          <Adduser addUser={addUser} />
+                                    </div>
+                                  
+                                    )}
+
+
+
+                                    <div className="middle aligned column">
+                                      <Manageuser users={users} deleteUser={deleteUser} editRow={editRow}  />
+                                    </div>
+                                </div>
+                                    <div className="ui vertical divider">
+                                     -
+                                    </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+        </div>
+         
+    )
+}
+
+export default App;
+
+
+
+Adduser.js
+
+import React , {useState} from 'react';
+
+const Adduser = (props) =>  {
+    
+    const initialFormState = { uid: null, firstname: '', lastname: '' };
+    const [user,setUser] = useState(initialFormState);
+
+    const handleInputChange  = event => {
+        const {name,value} = event.target
+        setUser({...user, [name]:value});
+    }
+
+
+
+        return(
+            
+    <div>
+        <h2> Add Form </h2>
+                    <hr />
+                           
+          <form className="ui form" onSubmit={ event => { 
+    event.preventDefault()
+    if (!user.firstname || !user.lastname) return
+
+    props.addUser(user)
+    setUser(initialFormState)
+  }}>
+                    <div className="field">
+                        <label>First Name</label>
+                        <input type="text" name="firstname" placeholder="First Name" value={user.firstname} onChange={handleInputChange} />
+                    </div>
+                    <div className="field">
+                        <label>Last Name</label>
+                        <input type="text" name="lastname" placeholder="Last Name" value={user.lastname} onChange={handleInputChange} />
+                    </div>
+                     
+                    <button className="ui blue submit button" type="submit"  >Add New User</button>
+                </form>
+        
+    </div>
+      )
+    }
+ 
+
+export default Adduser;
+
+Edituser.js
+
+import React ,{useState,useEffect   } from 'react';
+
+const Edituser = (props) => {
+
+    const [user, setUser] = useState(props.currentUser)
+    const handleInputChange = event => {
+        const { name, value } = event.target
+    
+        setUser({ ...user, [name]: value })
+      }
+      useEffect(() => {
+        setUser(props.currentUser)
+      }, [props])
+    return(
+                <div>
+                    <h2> Edit Form </h2>
+                    <hr />
+                                <form className="ui form"  onSubmit={event => {
+                                      event.preventDefault()
+
+                                props.updateUser(user.uid, user)
+                                }}>
+                                        <div className="field">
+                                            <label>First Name</label>
+                                            <input type="text" name="firstname" placeholder="First Name" value={user.firstname} onChange={handleInputChange} />
+                                        </div>
+                                        <div className="field">
+                                            <label>Last Name</label>
+                                            <input type="text" name="lastname" placeholder="Last Name" value={user.lastname} onChange={handleInputChange} />
+                                        </div>
+                                        
+                                        <button className="ui blue submit button"  >Update</button> &nbsp;
+                                        <button onClick={() => props.setEditing(false)} className="ui grey submit button"> Cancel</button>
+                                    </form>
+            
+        </div>
+    )
+}
+
+export default Edituser;
+
+Manageuser.js
+
+import React from 'react';
+ 
+const Manageuser =  (props) => {
+     
+        
+        return(
+            <div>
+                <h3>Manage User</h3>
+                    <table className="ui padded table">
+                        <thead>
+                            <tr>
+                                <th>S.no</th>
+                                <th>First Name</th>
+                                <th>Last Name</th>
+                                <th colSpan="2"  className="left aligned">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            { props.users.length > 0 ? (
+                                props.users.map(user => (
+                            <tr key={user.uid}>
+                                <td data-label="id">{user.uid}</td>
+                                <td data-label="firstname">{user.firstname}</td>
+                                <td data-label="lastname">{user.lastname}</td>
+                                <td data-label="Action"  >
+                                    
+                                    <button className="ui yellow button"  onClick={() => {props.editRow(user) }}>Edit</button>     
+                                </td>
+                                <td data-label="Action"  >
+                                    
+                                     <button className="ui red button" onClick={()=> props.deleteUser(user.uid)}>Delete</button>    
+                                </td>
+                            </tr>
+                                ))               
+                            ):(
+                             <tr>
+                                 <td colSpan={3}>No users</td>
+                            </tr>
+                           )}  
+                        </tbody>
+                    </table>
+            </div>
+        );
+    }
+ 
+
+export default Manageuser;
+
+
